@@ -26,8 +26,13 @@ $(document).ready(function() {
 		$("#input-room-id").val(data.id);
 	});
 
-	socket.on("nameset", function() {
-		showChatRoom();
+	socket.on("setname", function(data) {
+		data = JSON.parse(data);
+		if(data.result) {
+			showChatRoom();
+		} else {
+			alert(data.error);
+		}
 	});
 
 	socket.on("doesroomexist", function(data) {
@@ -49,7 +54,7 @@ $(document).ready(function() {
 
 	$("#name-button").click(function() {
 		socket.emit("setname", JSON.stringify({
-			name: $("#name-input"),
+			name: $("#name-input").val(),
 		}));
 	});
 });

@@ -76,6 +76,9 @@ socket.on("connection", function(client) {
      
     client.on("createid", function() {
         if(client.room) {
+            client.emit("createid", JSON.stringify({
+                id: client.room,
+            }));
             return;
         }
         client.room = "";
@@ -92,13 +95,27 @@ socket.on("connection", function(client) {
         client.emit("createid", JSON.stringify({
             id: UUID,
         }));
+
+        console.log(hosts);
     });
 
     client.on("setname", function(data) {
         data = JSON.parse(data);
-        client.name = data.name;
+        var result = false;
+        var message = "";
 
-        client.emit("nameset");
+        if(data.name.length < 3) {
+            message = "Name must be at least 3 characters long.";
+        } else {
+            client.name = data.name;
+            result = true;
+            message = "Name is good."
+        }
+
+        client.emit("setname", JSON.stringify({
+            result: result,
+            error: message 
+        }));
     });
 
     client.on("togglelock", function() {
@@ -117,7 +134,7 @@ socket.on("connection", function(client) {
         }));
     });
 
-    client.on("disconnected", function() {
+    client.on("disconnect", function() {
         if(client.room) {
             delete hosts[client.room];
         }
