@@ -95,8 +95,6 @@ socket.on("connection", function(client) {
         client.emit("createid", JSON.stringify({
             id: UUID,
         }));
-
-        console.log(hosts);
     });
 
     client.on("setname", function(data) {
@@ -119,12 +117,14 @@ socket.on("connection", function(client) {
     });
 
     client.on("togglelock", function() {
-        if(client.locked) {
-            client.locked = false;
-        } else
-            client.locked = true;
+        if(client.room) {
+            if(client.locked) {
+                client.locked = false;
+            } else
+                client.locked = true;
 
-        client.emit("toggledlock");
+            client.emit("toggledlock");
+        }
     });
 
     client.on("doesroomexist", function(data) {
