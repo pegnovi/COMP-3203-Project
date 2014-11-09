@@ -1,0 +1,110 @@
+html, body {
+	padding: 0px;
+	margin: 0px;
+	height: 100%;
+	width: 100%;
+	font-family: futura-pt,"Helvetica Neue",Helvetica,Arial,"Lucida Grande",sans-serif;
+}
+
+.navbar-inverse {
+	padding: 0px;
+	border-color: #1b926c;
+	border-width: 0 0 1px;
+	margin: 0px;
+}
+
+.navbar-brand {
+	color: #FFF !important;
+	height: auto !important;
+}
+
+.header {
+	color: #FFF;
+}
+
+.banner-content {
+	padding-top: 40px;
+	padding-bottom: 80px;
+}
+
+.input-group-custom {
+	background-color: #FFF;
+	padding: 5px;
+	border-radius: 3px;
+}
+
+.form-control-custom {
+	border-radius: 0px;
+	border: 0px;
+	box-shadow: none;
+}
+
+.form-control-custom:focus {
+	box-shadow: none;
+}
+
+.form-control-custom[readonly] {
+	background-color: #FFF;
+	cursor: default;
+}
+
+.btn-custom {
+	border-radius: 0px;
+	border: 0px;
+	padding: 5px;
+	padding-left: 20px;
+	padding-right: 20px;
+	border-radius: 3px !important;
+	border-bottom-left-radius: 3px !important;
+	border-top-left-radius: 3px !important;
+	color: #FFF;
+}
+
+.technologies {
+	padding-top: 30px;
+	padding-bottom: 30px;
+}
+
+.url-bar {
+	padding: 20px;
+}
+
+.sidebar {
+	height: 100%;
+	overflow: auto;
+}
+
+.center {
+	margin-left: auto;
+	margin-right: auto;
+	text-align: center;
+}
+
+.no-padding {
+	padding: 0px;
+}
+
+/* Colors*/
+.white {
+	background-color: #FFF;
+}
+
+.green {
+	background-color: #1E9E74;
+}
+
+.dark-green {
+	background-color: #1A8964;
+}
+
+.blue {
+	background-color: #45B7D1;
+}
+
+.gray {
+	background-color: #F0F1F3;
+}
+
+.dark {
+	background-color: #555;
+}
