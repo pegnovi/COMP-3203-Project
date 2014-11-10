@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<!--<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>-->
+	<script src="/socket.io/socket.io.js"></script>
+	<script type="text/javascript" src="/jquery-1.11.1.js"></script>
+	<script type="text/javascript" src="/bootstrap.js"></script>
+	<script type="text/javascript" src="/client.js"></script>
+	<script type="text/javascript" src="/sketchpad.js"></script>
+	<script type="text/javascript" src="/linkedlist.js"></script>
+</head>
+
+<body style="background-color: #999;">
+<div class="row" id="chooseGroup">
+
+	<!--<textarea id="msgBox" rows="5" cols="50"></textarea>-->
+	<h1>Select A Group to Join or Create a new Group</h1>
+	<select id="availableGroups"></select>
+	<input type="text" class="input-small" placeholder="Input new group name" id="newGroupName">
+	
+</div>
+
+<div class="row">
+	<div class="span2">
+		<h1 id="groupID"></h1>
+		<ul id="people" class="unstyled"></ul>
+	</div>
+	<div>
+		<ul id="msgs" class="unstyled"></ul>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span5 offset2" id="login">
+		<form class="form-inline">
+			<input type="text" class="input-small" placeholder="Your name" id="name">
+			<input type="button" name="join" id="join" value="Join" class="btn btn-primary">
+		</form>
+	</div>
+	
+	<div class="span5 offset2" id="chat">
+	
+		<textarea id="convo" readonly></textarea>
+		
+		<form id="2" class="form-inline">
+			<input type="text" class="input" placeholder="Your message" id="msg">
+			<input type="button" name="send" id="send" value="Send" class="btn btn-success">
+		</form>
+	</div>
+	<canvas id='sketchpad' height='600' width='1000' style='background-color: #FFF;'></canvas>
+</div>
+
+</body>
+	
+	
