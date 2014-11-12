@@ -65,7 +65,7 @@ function getRoomIdFromUrl() {
 		m = url.indexOf("&");
 
 	if(n > -1 && n + 3 < url.length) {
-		return url.substring(n + 3, m);
+		return url.substring(n + 3);
 	}
 	else
 		return null;
