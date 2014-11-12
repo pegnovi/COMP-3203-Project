@@ -129,6 +129,7 @@ socket.on("connection", function(client) {
 
     client.on("doesroomexist", function(data) {
         data = JSON.parse(data);
+        
         socket.emit("doesroomexist", JSON.stringify({
             result: hosts[data.room] ? true : false,
         }));
