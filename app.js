@@ -140,6 +140,9 @@ socket.on("connection", function(client) {
 				}));
 			}
 		}
+		else {
+			client.emit("roomDoesNotExist");
+		}
 		/*
         socket.emit("doesroomexist", JSON.stringify({
             result: hosts[data.room] ? true : false,

@@ -35,6 +35,7 @@ $(document).ready(function() {
 	};
 	dataChannel.onopen = function() {
 		console.log("datachannel open");
+		dataChannel.send("HELLO, I SENT SOMETHING");
 	}
 	dataChannel.onclose = function() {
 		console.log("datachannel close");
@@ -105,6 +106,10 @@ $(document).ready(function() {
 		}
 	});
 
+	socket.on("roomDoesNotExist", function() {
+		alert("The room does not exist!");
+		showHome();
+	});
 	
 	socket.on("doesroomexist", function(data) {
 		data = JSON.parse(data);
@@ -141,7 +146,8 @@ $(document).ready(function() {
 		console.log("ANSWER RECEIVED!!!");
 		
 		pc.setRemoteDescription(new SessionDescription(data.hostAnswer), function() {}, error);
-		
+		showNameForm();
+		//dataChannel.send("HELLO, I SENT SOMETHING");
 	});
 	
 	$("#create-button").click(function() {
