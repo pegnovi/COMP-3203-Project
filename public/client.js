@@ -3,22 +3,15 @@ $(document).ready(function() {
 	//============
 	//===WEBRTC===
 	//============
+	channelOpen = false;
 	//http://www.html5rocks.com/en/tutorials/webrtc/infrastructure/
 	//http://www.html5rocks.com/en/tutorials/webrtc/basics/
 	//https://www.webrtc-experiment.com/docs/how-to-use-rtcdatachannel.html#sctp-firefox
 	//https://bitbucket.org/webrtc/codelab
+	//https://www.webrtc-experiment.com/docs/how-to-use-rtcdatachannel.html
 	
 	var PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
-	/*
-	var GET_USER_MEDIA = navigator.getUserMedia ? "getUserMedia" :
-                     navigator.mozGetUserMedia ? "mozGetUserMedia" :
-                     navigator.webkitGetUserMedia ? "webkitGetUserMedia" : "getUserMedia";
-	//var v = document.createElement("video");
-	/*var SRC_OBJECT = 'srcObject' in v ? "srcObject" :
-					'mozSrcObject' in v ? "mozSrcObject" :
-					'webkitSrcObject' in v ? "webkitSrcObject" : "srcObject";
-	*/
 	/*
 	// The RTCIceCandidate object.
 	var RTCIceCandidate = mozRTCIceCandidate;
@@ -27,33 +20,14 @@ $(document).ready(function() {
 	console.log(RTCIceCandidate);
 	*/
 	
-	var pc = new PeerConnection();
-	// Establish your peer connection using your signaling channel here
-	var dataChannel = pc.createDataChannel("dataChannel");
-	dataChannel.onmessage = function(event) {
-		console.log("received: " + event.data);
+	var pc = new PeerConnection(/*null, {optional:[{RtpDataChannels:true}]}*/);
+	var dataChannel;
+	pc.ondatachannel = function(event) {
+		console.log("GOT A DATA CHANNEL!!!");
+		dataChannel = event.channel;
+		setChannelEvents(dataChannel);
 	};
-	dataChannel.onopen = function() {
-		console.log("datachannel open");
-		dataChannel.send("HELLO, I SENT SOMETHING");
-	}
-	dataChannel.onclose = function() {
-		console.log("datachannel close");
-	}
-
-	/*
-	peerConnection.createOffer(
-		function(sessionDesc) {
-			peerConnection.setLocalDescription(sessionDesc);
-			console.log("Sending: SDP");
-			console.log(sessionDesc);
-			//socket.emit("???", sessionDesc);
-		},
-		function onCreateSessionDescriptionError(error) {
-			console.log('Failed to create session description: ' + error.toString());
-		}
-	);
-	*/
+	
 	
 	console.log(pc);
 	console.log(dataChannel);
@@ -76,6 +50,9 @@ $(document).ready(function() {
 	var roomId = getRoomIdFromUrl();
 	if(roomId) {
 		showLoading();
+		
+		dataChannel = pc.createDataChannel("dataChannel");
+		setChannelEvents(dataChannel);
 		
 		pc.createOffer(function(offer) {
 			pc.setLocalDescription(new SessionDescription(offer), function() {
@@ -147,7 +124,7 @@ $(document).ready(function() {
 		
 		pc.setRemoteDescription(new SessionDescription(data.hostAnswer), function() {}, error);
 		showNameForm();
-		//dataChannel.send("HELLO, I SENT SOMETHING");
+
 	});
 	
 	$("#create-button").click(function() {
@@ -160,6 +137,12 @@ $(document).ready(function() {
 		socket.emit("setname", JSON.stringify({
 			name: $("#name-input").val(),
 		}));
+		
+		console.log("channelOpen = " + channelOpen);
+		if(channelOpen == true) {
+			console.log("SENDING A NAME");
+			dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
+		}
 	});
 });
 
@@ -215,3 +198,19 @@ function hide() {
 }
 
 function error(err) { console.log("ERROR OCCURRED!!!"); endCall(); }
+
+function setChannelEvents(channel) {
+	console.log("!!!!!SETTING CHANNEL EVENTS!!!!!");
+	channel.onmessage = function(event) {
+		console.log("received: " + event.data);
+	};
+	channel.onopen = function() {
+		console.log("channel open");
+		channelOpen = true;
+	}
+	channel.onclose = function() {
+		console.log("channel close");
+	}
+}
+	
+	
