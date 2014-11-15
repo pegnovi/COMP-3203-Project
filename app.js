@@ -18,9 +18,9 @@ var mimeTypes = {
 var contentData = {};
 var dirPath = "./public";
 var filenames = fs.readdirSync(dirPath);
-console.log("!!!filenames!!!");
+//console.log("!!!filenames!!!");
 for(var i=0; i<filenames.length; i++) {
-    console.log(filenames[i]);
+    //console.log(filenames[i]);
     contentData["/"+filenames[i]] = fs.readFileSync(dirPath+"/"+filenames[i]); 
 }
 
@@ -32,9 +32,9 @@ var server = http.createServer(function(request, response) {
     var extname = path.extname(request.url);
     var contentType = 'text/html';
     var pathname = url.parse(request.url).pathname;
-    console.log("pathname = " + pathname);
-    console.log("extname = " + extname);
-    console.log("extname = " + extname.substring(1, extname.length));
+    //console.log("pathname = " + pathname);
+    //console.log("extname = " + extname);
+    //console.log("extname = " + extname.substring(1, extname.length));
      
     if(pathname != "/") { //give the other files
         extname = extname.substring(1, extname.length);
@@ -129,11 +129,35 @@ socket.on("connection", function(client) {
 
     client.on("doesroomexist", function(data) {
         data = JSON.parse(data);
-        
+        var result = hosts[data.room] ? true: false;
+		if(result) {
+			if(data.clientOffer != null) {
+				//send the offer to the host client
+				var theHostClient = hosts[data.room]
+				theHostClient.emit("offerFromClient", JSON.stringify({
+					offer: data.clientOffer,
+					theClientID: client.id
+				}));
+			}
+		}
+		else {
+			client.emit("roomDoesNotExist");
+		}
+		/*
         socket.emit("doesroomexist", JSON.stringify({
             result: hosts[data.room] ? true : false,
         }));
+		*/
     });
+	
+	client.on("sendAnswer", function(data) {
+		data = JSON.parse(data);
+		
+		socket.to(data.targetClient).emit("hostAnswer", JSON.stringify({
+			hostAnswer: data.hostClientAnswer
+		}));
+		
+	});
 
     client.on("disconnect", function() {
         if(client.room) {
