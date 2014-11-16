@@ -20,19 +20,34 @@ $(document).ready(function() {
 	console.log(RTCIceCandidate);
 	*/
 	
-	var pc = new PeerConnection(/*null, {optional:[{RtpDataChannels:true}]}*/);
-	var dataChannel;
-	pc.ondatachannel = function(event) {
-		console.log("GOT A DATA CHANNEL!!!");
-		dataChannel = event.channel;
-		setChannelEvents(dataChannel);
+	//stores peerConnection and dataChannel
+	var ConnectionObj = {
+		create: function() {
+			var self = Object.create(this);
+			self.pc = new PeerConnection();
+			self.dataChannel = null;
+			
+			self.pc.ondatachannel = function(event) {
+				console.log("GOT A DATA CHANNEL!!!");
+				self.dataChannel = event.channel;
+				setChannelEvents(self.dataChannel);
+			}
+			
+			return self;
+		},
+		
+		makeOwnDataChannel : function() {
+			this.dataChannel = this.pc.createDataChannel("dataChannel");
+			setChannelEvents(this.dataChannel);
+		},
+		
+		setDataChannel : function(channel) {
+			this.dataChannel = channel
+		}
 	};
+	conObjs = {}; //clientID : connectionObj
+	var groupRoomID = "";
 	
-	
-	console.log(pc);
-	console.log(dataChannel);
-	
-	console.log("WEBRTC DONE FOR NOW");
 	//============
 	//============
 	//============
@@ -51,18 +66,9 @@ $(document).ready(function() {
 	if(roomId) {
 		showLoading();
 		
-		dataChannel = pc.createDataChannel("dataChannel");
-		setChannelEvents(dataChannel);
-		
-		pc.createOffer(function(offer) {
-			pc.setLocalDescription(new SessionDescription(offer), function() {
-				//send the offer to a server to be forwarded to the friend you're calling
-				socket.emit("doesroomexist", JSON.stringify({
-					room: roomId,
-					clientOffer: offer
-				}));
-			}, error);
-		}, error);
+		socket.emit("doesroomexist", JSON.stringify({
+			room: roomId
+		}));
 		
 	} else {
 		showHome();
@@ -83,6 +89,49 @@ $(document).ready(function() {
 		}
 	});
 
+	socket.on("roomExists", function(data) {
+		console.log("Room Exists, Sending Offer to groupmates");
+		data = JSON.parse(data);
+		sendOfferToGroupmates(data.groupmatesIDs);
+	});
+	function createOfferSendingFunction(grpMtID) {
+		return function(offer) {
+				conObjs[grpMtID].pc.setLocalDescription(new SessionDescription(offer), 
+				function() {
+					//send the offer to a server to be forwarded to the friend you're calling
+					socket.emit("signalOffer", JSON.stringify({
+						targetID: grpMtID,
+						clientOffer: offer
+					}));
+				}, error);
+		};
+	}
+	function sendOfferToGroupmates(groupmatesIDs) {
+		for(var i=0; i<groupmatesIDs.length; i++) {
+			var grpMtID = groupmatesIDs[i];
+			conObjs[grpMtID] = ConnectionObj.create();
+			conObjs[grpMtID].makeOwnDataChannel();
+			
+			//prevent using variables that are from outer scope
+			//http://conceptf1.blogspot.ca/2013/11/javascript-closures.html
+			//http://javascriptissexy.com/understand-javascript-closures-with-ease/
+
+			conObjs[grpMtID].pc.createOffer(createOfferSendingFunction(grpMtID), error);
+			/*
+			conObjs[grpMtID].pc.createOffer(function(offer) {
+				conObjs[grpMtID].pc.setLocalDescription(new SessionDescription(offer), 
+				function() {
+					//send the offer to a server to be forwarded to the friend you're calling
+					socket.emit("signalOffer", JSON.stringify({
+						targetID: idGetter(),
+						clientOffer: offer
+					}));
+				}, error);
+			}, error);
+			*/
+		}
+	}
+	
 	socket.on("roomDoesNotExist", function() {
 		alert("The room does not exist!");
 		showHome();
@@ -100,30 +149,44 @@ $(document).ready(function() {
 	});
 	
 	socket.on("offerFromClient", function(data) {
+		console.log("OFFER RECEIVED!!! SENDING ANSWER");
 		data = JSON.parse(data);
 		console.log(data.offer);
-		console.log("OFFER RECEIVED!!!");
 		
-		pc.setRemoteDescription(new SessionDescription(data.offer), function() {
-			pc.createAnswer(function(answer) {
-				pc.setLocalDescription(new SessionDescription(answer), function() {
+		console.log("from client " + data.offererID);
+		
+		conObjs[data.offererID] = ConnectionObj.create();
+		
+		//if(conObjs[data.offererID] != undefined) {
+		conObjs[data.offererID].pc.setRemoteDescription(new SessionDescription(data.offer), function() {
+			console.log("in setRemoteDescription");
+			conObjs[data.offererID].pc.createAnswer(function(answer) {
+				console.log("in createAnswer");
+				conObjs[data.offererID].pc.setLocalDescription(new SessionDescription(answer), function() {
+					console.log("in setLocalDescription");
+					//https://github.com/ESTOS/strophe.jingle/issues/35
 					//send the answer to a server to be forwarded back to the caller
-					socket.emit("sendAnswer", JSON.stringify({
-						hostClientAnswer: answer,
-						targetClient: data.theClientID 
+					socket.emit("signalAnswer", JSON.stringify({
+						clientAnswer: answer,
+						targetID: data.offererID 
 					}));
 				}, error);
 			}, error);
 		}, error);
+		//}
 		
 	});
 
-	socket.on("hostAnswer", function(data) {
-		data = JSON.parse(data);
+	socket.on("answerToOffer", function(data) {
 		console.log("ANSWER RECEIVED!!!");
+		data = JSON.parse(data);	
 		
-		pc.setRemoteDescription(new SessionDescription(data.hostAnswer), function() {}, error);
+		conObjs[data.answererID].pc.setRemoteDescription(new SessionDescription(data.answer), function() {}, error);
 		showNameForm();
+		
+		socket.emit("answerConfirmed", JSON.stringify({
+			roomID: data.roomID
+		}));
 
 	});
 	
@@ -141,7 +204,16 @@ $(document).ready(function() {
 		console.log("channelOpen = " + channelOpen);
 		if(channelOpen == true) {
 			console.log("SENDING A NAME");
-			dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
+			
+			/*
+			console.log(conObjs);
+			for(var id in conObjs) {
+				console.log(conObjs[id]);
+				conObjs[id].dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
+			}
+			*/
+			sendToGroup("mY nAMe iz " + $("#name-input").val() + "!!!");
+			//dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
 		}
 	});
 });
@@ -197,7 +269,7 @@ function hide() {
 	$("#loading").hide();
 }
 
-function error(err) { console.log("ERROR OCCURRED!!!"); endCall(); }
+function error(err) { console.log("ERROR OCCURRED!!!"); console.log(err); endCall(); }
 
 function setChannelEvents(channel) {
 	console.log("!!!!!SETTING CHANNEL EVENTS!!!!!");
@@ -213,4 +285,10 @@ function setChannelEvents(channel) {
 	}
 }
 	
+function sendToGroup(message) {
+	for(var id in conObjs) {
+		//console.log(conObjs[id]);
+		conObjs[id].dataChannel.send(message);
+	}
+}
 	

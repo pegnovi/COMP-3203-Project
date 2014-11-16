@@ -66,8 +66,11 @@ var server = http.createServer(function(request, response) {
 //=====================
 var socket = io.listen(server);
  
-var hosts = {};
-     
+//var hosts = {};
+
+//Represents a group of clients in the same chatroom
+var groups = {}; //roomID : list of client ids
+
 socket.on("connection", function(client) {
  
     console.log("client id = " + client.id);
@@ -83,13 +86,15 @@ socket.on("connection", function(client) {
         }
         client.room = "";
 
+		//Ensure uniqueness of UUID
         var UUID = getUUID();
-        while(hosts[UUID]) {
+        while(groups[UUID]) {
             UUID = getUUID();
         }
 
         client.room = UUID;
-        hosts[UUID] = client;
+        groups[UUID] = [];
+		groups[UUID].push(client);
         client.name = "Host";
 
         client.emit("createid", JSON.stringify({
@@ -129,16 +134,29 @@ socket.on("connection", function(client) {
 
     client.on("doesroomexist", function(data) {
         data = JSON.parse(data);
-        var result = hosts[data.room] ? true: false;
+        var result = groups[data.room] ? true: false;
 		if(result) {
-			if(data.clientOffer != null) {
-				//send the offer to the host client
-				var theHostClient = hosts[data.room]
-				theHostClient.emit("offerFromClient", JSON.stringify({
-					offer: data.clientOffer,
-					theClientID: client.id
-				}));
+			
+			//group exists
+			//send number of ppl there and their clientIDs
+			var otherClientsIDs = [];
+			console.log("looping" + groups[data.room].length);
+			for(var i=0; i<groups[data.room].length; i++) {
+				otherClientsIDs.push(groups[data.room][i].id);
 			}
+			
+			/*
+			for(var otherC in groups[data.room]) {
+				console.log(otherC.id);
+				otherClientsIDs.push(otherC.id);
+			}
+			*/
+			
+			console.log(otherClientsIDs);
+			
+			client.emit("roomExists", JSON.stringify({
+				groupmatesIDs: otherClientsIDs
+			}));
 		}
 		else {
 			client.emit("roomDoesNotExist");
@@ -149,19 +167,53 @@ socket.on("connection", function(client) {
         }));
 		*/
     });
+	client.on("signalOffer", function(data) {
+		data = JSON.parse(data);
+		console.log("!!!IN SIGNAL OFFER with target id = " + data.targetID);
+		console.log("the offer is = " + data.clientOffer);
 	
-	client.on("sendAnswer", function(data) {
+		socket.to(data.targetID).emit("offerFromClient", JSON.stringify({
+			offer: data.clientOffer,
+			offererID: client.id
+		}));
+		
+	});
+	
+	
+	client.on("signalAnswer", function(data) {
 		data = JSON.parse(data);
 		
-		socket.to(data.targetClient).emit("hostAnswer", JSON.stringify({
-			hostAnswer: data.hostClientAnswer
+		console.log("client room = " + client.room);
+		socket.to(data.targetID).emit("answerToOffer", JSON.stringify({
+			roomID: client.room,
+			answer: data.clientAnswer,
+			answererID: client.id
 		}));
 		
 	});
 
+	client.on("answerConfirmed", function(data) {
+		data = JSON.parse(data);
+		
+		var found = false;
+		if(groups[data.roomID] != undefined) {
+			for(var i=0; i<groups[data.roomID].length; i++) {
+				if(groups[data.roomID][i].id == client.id) {
+					found = true;
+				}
+			}
+			if(!found) {
+				console.log("added to group");
+				groups[data.roomID].push(client);
+				client.room = data.roomID;
+			}
+		}
+		
+	});
+	
     client.on("disconnect", function() {
         if(client.room) {
-            delete hosts[client.room];
+            delete groups[client.room];
         }
     });
 });
