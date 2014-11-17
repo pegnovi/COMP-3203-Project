@@ -24,6 +24,7 @@ $(document).ready(function() {
 	var ConnectionObj = {
 		create: function() {
 			var self = Object.create(this);
+			self.name = "";
 			self.pc = new PeerConnection();
 			self.dataChannel = null;
 			
@@ -46,6 +47,7 @@ $(document).ready(function() {
 		}
 	};
 	conObjs = {}; //clientID : connectionObj
+	ownName = "";
 	var groupRoomID = "";
 	
 	//============
@@ -83,6 +85,7 @@ $(document).ready(function() {
 	socket.on("setname", function(data) {
 		data = JSON.parse(data);
 		if(data.result) {
+			ownName = $("#name-input").val();
 			showChatRoom();
 		} else {
 			alert(data.error);
@@ -167,6 +170,7 @@ $(document).ready(function() {
 					//https://github.com/ESTOS/strophe.jingle/issues/35
 					//send the answer to a server to be forwarded back to the caller
 					socket.emit("signalAnswer", JSON.stringify({
+						clientName: ownName,
 						clientAnswer: answer,
 						targetID: data.offererID 
 					}));
@@ -182,6 +186,7 @@ $(document).ready(function() {
 		data = JSON.parse(data);	
 		
 		conObjs[data.answererID].pc.setRemoteDescription(new SessionDescription(data.answer), function() {}, error);
+		conObjs[data.answererID].name = data.answererName;
 		showNameForm();
 		
 		socket.emit("answerConfirmed", JSON.stringify({
@@ -204,16 +209,23 @@ $(document).ready(function() {
 		console.log("channelOpen = " + channelOpen);
 		if(channelOpen == true) {
 			console.log("SENDING A NAME");
-			
-			/*
-			console.log(conObjs);
-			for(var id in conObjs) {
-				console.log(conObjs[id]);
-				conObjs[id].dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
-			}
-			*/
-			sendToGroup("mY nAMe iz " + $("#name-input").val() + "!!!");
-			//dataChannel.send("mY nAMe iz " + $("#name-input").val() + "!!!");
+			sendToGroup("name", $("#name-input").val());
+		}
+	});
+	
+	var sendChatMessage = function() {
+		var msg = $("#msg").val();
+		$("#convo").append(ownName + ": " + msg + "\n");
+		sendToGroup("chatMessage", msg);
+		$("#msg").val("");
+	};
+	$("#send").click(function() {
+		sendChatMessage();
+	});
+	
+	$("#msg").keypress(function(e) {
+		if(e.which == 13) {
+			sendChatMessage();
 		}
 	});
 });
@@ -274,7 +286,11 @@ function error(err) { console.log("ERROR OCCURRED!!!"); console.log(err); endCal
 function setChannelEvents(channel) {
 	console.log("!!!!!SETTING CHANNEL EVENTS!!!!!");
 	channel.onmessage = function(event) {
-		console.log("received: " + event.data);
+		var data = JSON.parse(event.data);
+		console.log("received command: " + data.command);
+		console.log("received dataObj: ");
+		console.log(data.dataObj);
+		commandFunctions[data.command](this, data);
 	};
 	channel.onopen = function() {
 		console.log("channel open");
@@ -285,10 +301,48 @@ function setChannelEvents(channel) {
 	}
 }
 	
-function sendToGroup(message) {
+function sendToGroup(theCommand, theData) {
 	for(var id in conObjs) {
 		//console.log(conObjs[id]);
-		conObjs[id].dataChannel.send(message);
+		conObjs[id].dataChannel.send(JSON.stringify({
+			command: theCommand,
+			dataObj: theData
+		}));
 	}
 }
 	
+function findConObj(dataChannel) {
+	for(var id in conObjs) {
+		if(conObjs[id].dataChannel == dataChannel) {
+			return conObjs[id];
+		}
+	}
+	return null;
+}
+	
+var commandFunctions = {};
+commandFunctions["name"] = function(dataChannel, data) {
+	var theConObj = findConObj(dataChannel);
+	if(theConObj != null) {
+		theConObj.name = data.dataObj;
+		console.log("received name = " + theConObj.name);
+	}
+};
+
+commandFunctions["chatMessage"] = function(dataChannel, data) {
+	var theConObj = findConObj(dataChannel);
+	if(theConObj != null) {
+		$("#convo").append(theConObj.name + ": " + data.dataObj + "\n");
+	}
+};
+
+/*
+commandFunctions[" <YOUR COMMAND> "] = function(dataChannel, data) {
+	var theConObj = findConObj(dataChannel);
+	if(theConObj != null) {
+		//YOUR STUFF TO DO
+		
+		//
+	}
+};
+*/

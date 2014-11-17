@@ -116,7 +116,7 @@ socket.on("connection", function(client) {
         }
 
         client.emit("setname", JSON.stringify({
-            result: result,
+			result: result,
             error: message 
         }));
     });
@@ -187,7 +187,8 @@ socket.on("connection", function(client) {
 		socket.to(data.targetID).emit("answerToOffer", JSON.stringify({
 			roomID: client.room,
 			answer: data.clientAnswer,
-			answererID: client.id
+			answererID: client.id,
+			answererName: data.clientName
 		}));
 		
 	});
