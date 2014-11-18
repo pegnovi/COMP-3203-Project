@@ -188,10 +188,6 @@ $(document).ready(function() {
 		conObjs[data.answererID].pc.setRemoteDescription(new SessionDescription(data.answer), function() {}, error);
 		conObjs[data.answererID].name = data.answererName;
 		showNameForm();
-		
-		socket.emit("answerConfirmed", JSON.stringify({
-			roomID: data.roomID
-		}));
 
 	});
 	

@@ -157,6 +157,22 @@ socket.on("connection", function(client) {
 			client.emit("roomExists", JSON.stringify({
 				groupmatesIDs: otherClientsIDs
 			}));
+			
+			//add to group
+			var found = false;
+			if(groups[data.room] != undefined) {
+				for(var i=0; i<groups[data.room].length; i++) {
+					if(groups[data.room][i].id == client.id) {
+						found = true;
+					}
+				}
+				if(!found) {
+					console.log("added to group");
+					groups[data.room].push(client);
+					client.room = data.room;
+				}
+			}
+		
 		}
 		else {
 			client.emit("roomDoesNotExist");
@@ -193,24 +209,6 @@ socket.on("connection", function(client) {
 		
 	});
 
-	client.on("answerConfirmed", function(data) {
-		data = JSON.parse(data);
-		
-		var found = false;
-		if(groups[data.roomID] != undefined) {
-			for(var i=0; i<groups[data.roomID].length; i++) {
-				if(groups[data.roomID][i].id == client.id) {
-					found = true;
-				}
-			}
-			if(!found) {
-				console.log("added to group");
-				groups[data.roomID].push(client);
-				client.room = data.roomID;
-			}
-		}
-		
-	});
 	
     client.on("disconnect", function() {
         if(client.room) {
