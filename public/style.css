@@ -84,6 +84,16 @@ html, body {
 	padding: 0px;
 }
 
+#chat-room {
+	height: 100%;
+	min-height: 100%;
+}
+
+#canvas-div {
+	height: 100%;
+	min-height: 100%;
+}
+
 /* Colors*/
 .white {
 	background-color: #FFF;

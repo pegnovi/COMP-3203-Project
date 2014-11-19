@@ -239,12 +239,17 @@ function getRoomIdFromUrl() {
 }
 
 function resizeCanvas(canvas, container) {
-	var aspect = canvas.width/canvas.height,
-	width = container.width(),
-	height = container.height();
+	//var aspect = canvas.width/canvas.height,
+	//width = container.width(),
+	//height = container.height();
 
-	canvas.width = Math.round(width * aspect);
-	canvas.height = height;
+	//canvas.width = Math.round(width * aspect);
+	//canvas.height = height;
+	canvas.style.width = "100%";
+	canvas.style.height = "100%";
+
+	canvas.width  = canvas.offsetWidth;
+	canvas.height = canvas.offsetHeight;
 }
 
 function showChatRoom() {
