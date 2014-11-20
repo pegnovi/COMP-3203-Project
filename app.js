@@ -209,6 +209,21 @@ socket.on("connection", function(client) {
 		
 	});
 
+	client.on("iceCandidate", function(data) {
+		data = JSON.parse(data);
+		
+		if(groups[data.room] != undefined) {
+			for(var i=0; i<groups[data.room].length; i++) {
+				if(groups[data.room][i].id != client.id) {
+					socket.to(groups[data.room][i].id).emit("iceCandidateUpdate", JSON.stringify({
+						peerID: client.id,
+						iceCandidate: data.candidate
+					}));
+				}
+			}
+		
+		}
+	});
 	
     client.on("disconnect", function() {
         if(client.room) {
