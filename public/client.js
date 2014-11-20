@@ -59,10 +59,24 @@ $(document).ready(function() {
 	console.log("connected!!!");
 
 	//Sketchpad initialization
-	var canvas = document.getElementById('sketchpad');
+	var canvas = document.getElementById('canvas');
 	var padContext = canvas.getContext('2d');
 	var sketchpad = new Sketchpad(padContext);
 	var drawingInterval = null;
+
+	$('#size-selector').on('change', function(){
+		sketchpad.setWidth($('#size-selector').val());
+	});
+
+	$('#size-selector').on('keydown', function(){
+	    sketchpad.setWidth($('#size-selector').val());
+	});
+
+	$('#color-selector').on('change', function(){
+	    sketchpad.setColor($('#color-selector').val());
+	});
+
+	//-----------------------
 
 	var roomId = getRoomIdFromUrl();
 	if(roomId) {
@@ -224,126 +238,133 @@ $(document).ready(function() {
 			sendChatMessage();
 		}
 	});
-});
 
-function getRoomIdFromUrl() {
-	var url = document.URL,
-		n = url.indexOf("?i="),
-		m = url.indexOf("&");
+	drawingInterval = setInterval(function() {
+		var array = sketchpad.toArray();
+		if(array.length > 0)
+			sendToGroup("draw", array);
+	},30);
 
-	if(n > -1 && n + 3 < url.length) {
-		return url.substring(n + 3);
+	function getRoomIdFromUrl() {
+		var url = document.URL,
+			n = url.indexOf("?i="),
+			m = url.indexOf("&");
+
+		if(n > -1 && n + 3 < url.length) {
+			return url.substring(n + 3);
+		}
+		else
+			return null;
 	}
-	else
-		return null;
-}
 
-function resizeCanvas(canvas, container) {
-	//var aspect = canvas.width/canvas.height,
-	//width = container.width(),
-	//height = container.height();
+	function resizeCanvas(canvas, container) {
+		//canvas.style.width = "100%";
+		//canvas.style.height = "100%";
 
-	//canvas.width = Math.round(width * aspect);
-	//canvas.height = height;
-	canvas.style.width = "100%";
-	canvas.style.height = "100%";
-
-	canvas.width  = canvas.offsetWidth;
-	canvas.height = canvas.offsetHeight;
-}
-
-function showChatRoom() {
-	hide();
-	$("#chat-room").show();
-	$("#navbar").show();
-	resizeCanvas($("#sketchpad")[0], $("#canvas-div")[0]);
-}
-
-function showHome() {
-	hide();
-	$("#home").show();
-}
-
-function showNameForm() {
-	hide();
-	$("#name-form").show();
-}
-
-function showLoading() {
-	hide();
-	$("#loading").show();
-}
-
-function hide() {
-	$("#name-form").hide();
-	$("#home").hide();
-	$("#chat-room").hide();
-	$("#navbar").hide();
-	$("#loading").hide();
-}
-
-function error(err) { console.log("ERROR OCCURRED!!!"); console.log(err); endCall(); }
-
-function setChannelEvents(channel) {
-	console.log("!!!!!SETTING CHANNEL EVENTS!!!!!");
-	channel.onmessage = function(event) {
-		var data = JSON.parse(event.data);
-		console.log("received command: " + data.command);
-		console.log("received dataObj: ");
-		console.log(data.dataObj);
-		commandFunctions[data.command](this, data);
-	};
-	channel.onopen = function() {
-		console.log("channel open");
-		channelOpen = true;
+		//canvas.width  = canvas.offsetWidth;
+		//canvas.height = canvas.offsetHeight;
 	}
-	channel.onclose = function() {
-		console.log("channel close");
+
+	function showChatRoom() {
+		hide();
+		$("#chat-room").show();
+		$("#navbar").show();
+		resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
 	}
-}
-	
-function sendToGroup(theCommand, theData) {
-	for(var id in conObjs) {
-		//console.log(conObjs[id]);
-		conObjs[id].dataChannel.send(JSON.stringify({
-			command: theCommand,
-			dataObj: theData
-		}));
+
+	function showHome() {
+		hide();
+		$("#home").show();
 	}
-}
-	
-function findConObj(dataChannel) {
-	for(var id in conObjs) {
-		if(conObjs[id].dataChannel == dataChannel) {
-			return conObjs[id];
+
+	function showNameForm() {
+		hide();
+		$("#name-form").show();
+	}
+
+	function showLoading() {
+		hide();
+		$("#loading").show();
+	}
+
+	function hide() {
+		$("#name-form").hide();
+		$("#home").hide();
+		$("#chat-room").hide();
+		$("#navbar").hide();
+		$("#loading").hide();
+	}
+
+	function error(err) { console.log("ERROR OCCURRED!!!"); console.log(err); endCall(); }
+
+	function setChannelEvents(channel) {
+		console.log("!!!!!SETTING CHANNEL EVENTS!!!!!");
+		channel.onmessage = function(event) {
+			var data = JSON.parse(event.data);
+			console.log("received command: " + data.command);
+			console.log("received dataObj: ");
+			console.log(data.dataObj);
+			commandFunctions[data.command](this, data);
+		};
+		channel.onopen = function() {
+			console.log("channel open");
+			channelOpen = true;
+		}
+		channel.onclose = function() {
+			console.log("channel close");
 		}
 	}
-	return null;
-}
-	
-var commandFunctions = {};
-commandFunctions["name"] = function(dataChannel, data) {
-	var theConObj = findConObj(dataChannel);
-	if(theConObj != null) {
-		theConObj.name = data.dataObj;
-		console.log("received name = " + theConObj.name);
-	}
-};
-
-commandFunctions["chatMessage"] = function(dataChannel, data) {
-	var theConObj = findConObj(dataChannel);
-	if(theConObj != null) {
-		$("#convo").append(theConObj.name + ": " + data.dataObj + "\n");
-	}
-};
-
-/*
-commandFunctions[" <YOUR COMMAND> "] = function(dataChannel, data) {
-	var theConObj = findConObj(dataChannel);
-	if(theConObj != null) {
-		//YOUR STUFF TO DO
 		
-		//
+	function sendToGroup(theCommand, theData) {
+		for(var id in conObjs) {
+			//console.log(conObjs[id]);
+			conObjs[id].dataChannel.send(JSON.stringify({
+				command: theCommand,
+				dataObj: theData
+			}));
+		}
 	}
-};
-*/
+		
+	function findConObj(dataChannel) {
+		for(var id in conObjs) {
+			if(conObjs[id].dataChannel == dataChannel) {
+				return conObjs[id];
+			}
+		}
+		return null;
+	}
+		
+	var commandFunctions = {};
+	commandFunctions["name"] = function(dataChannel, data) {
+		var theConObj = findConObj(dataChannel);
+		if(theConObj != null) {
+			theConObj.name = data.dataObj;
+			console.log("received name = " + theConObj.name);
+		}
+	};
+
+	commandFunctions["chatMessage"] = function(dataChannel, data) {
+		var theConObj = findConObj(dataChannel);
+		if(theConObj != null) {
+			$("#convo").append(theConObj.name + ": " + data.dataObj + "\n");
+		}
+	};
+
+	commandFunctions["draw"] = function(dataChannel, data) {
+		var theConObj = findConObj(dataChannel);
+		if(theConObj != null) {
+			sketchpad.drawFromArray(data.dataObj);
+		}
+	}
+
+	/*
+	commandFunctions[" <YOUR COMMAND> "] = function(dataChannel, data) {
+		var theConObj = findConObj(dataChannel);
+		if(theConObj != null) {
+			//YOUR STUFF TO DO
+			
+			//
+		}
+	};
+	*/
+});
