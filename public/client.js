@@ -25,7 +25,21 @@ $(document).ready(function() {
 		create: function() {
 			var self = Object.create(this);
 			self.name = "";
-			self.pc = new PeerConnection();
+			var configuration = {
+			  'iceServers': [{
+				'url': 'stun:stun3.l.google.com:19302'
+			  }]
+			};
+			self.pc = new PeerConnection(configuration);
+			self.pc.onicecandidate = function(event) {
+				if(event.candidate) {
+					console.log("Sending new ICE Candidate");
+					socket.emit("iceCandidate", JSON.stringify({
+						room: roomId,
+						candidate: event.candidate
+					}));
+				}
+			}
 			self.dataChannel = null;
 			
 			self.pc.ondatachannel = function(event) {
@@ -48,7 +62,6 @@ $(document).ready(function() {
 	};
 	conObjs = {}; //clientID : connectionObj
 	ownName = "";
-	var groupRoomID = "";
 	
 	//============
 	//============
@@ -78,7 +91,7 @@ $(document).ready(function() {
 
 	//-----------------------
 
-	var roomId = getRoomIdFromUrl();
+	roomId = getRoomIdFromUrl();
 	if(roomId) {
 		showLoading();
 		
@@ -91,6 +104,15 @@ $(document).ready(function() {
 		socket.emit("createid");
 	}
 
+	socket.on("iceCandidateUpdate", function(data) {
+		data = JSON.parse(data);
+		console.log("ICE Candidate update");
+		if(conObjs[data.clientID] != undefined) {
+			console.log("client found");
+			conObjs[data.clientID].pc.addIceCandidate(new RTCIceCandidate(data.iceCandidate));
+		}
+	});
+	
 	socket.on("createid", function(data) {
 		data = JSON.parse(data);
 		$("#input-room-id").val(data.id);
