@@ -113,8 +113,9 @@ $(document).ready(function() {
 	//============
 
 	console.log("connecting...");
-	var socket = io.connect("goDrawi.jit.su:80");
-	//var socket = io.connect("127.0.0.1:8080");
+	
+	//var socket = io.connect("goDrawi.jit.su:80"); //use this if uploading to nodejitsu
+	var socket = io.connect("127.0.0.1:8080"); //use this if running locally
 	console.log("connected!!!");
 
 	//Sketchpad initialization
@@ -278,6 +279,18 @@ $(document).ready(function() {
 		conObjs[data.answererID].name = data.answererName;
 		showNameForm();
 
+	});
+	
+	socket.on("deleteMember", function(data) {
+		data = JSON.parse(data);
+		console.log("DELETING MEMBER " + data.memberToDelete);
+		
+		delete conObjs[data.memberToDelete];
+		
+		console.log("group so far---");
+		for(var id in conObjs) {
+			console.log(conObjs[id].name);
+		}
 	});
 	
 	$("#create-button").click(function() {

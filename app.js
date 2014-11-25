@@ -55,8 +55,8 @@ var server = http.createServer(function(request, response) {
         response.end();
     }
      
-}).listen(80);
-//}).listen(8080); 
+//}).listen(80); //use this if uploading to nodejitsu
+}).listen(8080); //use this if running locally
  
      
  
@@ -227,7 +227,25 @@ socket.on("connection", function(client) {
 	
     client.on("disconnect", function() {
         if(client.room) {
-            delete groups[client.room];
+			console.log("deleting client " + client.id + " from group");
+
+			//delete client from group
+			var index = groups[client.room].indexOf(client);
+			groups[client.room].splice(index,1);
+			
+			//tell all other clients in the group to delete this client
+			for(var i=0; i<groups[client.room].length; i++) {
+				console.log("HERE with " + groups[client.room][i].id);
+				socket.to(groups[client.room][i].id).emit("deleteMember", JSON.stringify({
+					memberToDelete: client.id
+				}));
+			}
+			
+			if(groups[client.room].length == 0) {
+				console.log("group member count == 0 so deleting entire group");
+				delete groups[client.room];
+			}
+			delete client;
         }
     });
 });
