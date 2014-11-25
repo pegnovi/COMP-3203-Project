@@ -12,33 +12,78 @@ $(document).ready(function() {
 	
 	var PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
 	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
-	/*
+	
 	// The RTCIceCandidate object.
 	var RTCIceCandidate = mozRTCIceCandidate;
-	console.log(PeerConnection);
-	console.log(SessionDescription);
-	console.log(RTCIceCandidate);
-	*/
+	//console.log(PeerConnection);
+	//console.log(SessionDescription);
+	//console.log(RTCIceCandidate);
+	
 	
 	//stores peerConnection and dataChannel
 	var ConnectionObj = {
 		create: function() {
 			var self = Object.create(this);
 			self.name = "";
+			
 			var configuration = {
-			  'iceServers': [{
-				'url': 'stun:stun3.l.google.com:19302'
-			  }]
+			  'iceServers': [
+				{'url':'stun:stun01.sipphone.com'},
+				{'url':'stun:stun.ekiga.net'},
+				{'url':'stun:stun.fwdnet.net'},
+				{'url':'stun:stun.ideasip.com'},
+				{'url':'stun:stun.iptel.org'},
+				{'url':'stun:stun.rixtelecom.se'},
+				{'url':'stun:stun.schlund.de'},
+				{'url':'stun:stun.l.google.com:19302'},
+				{'url':'stun:stun1.l.google.com:19302'},
+				{'url':'stun:stun2.l.google.com:19302'},
+				{'url':'stun:stun3.l.google.com:19302'},
+				{'url':'stun:stun4.l.google.com:19302'},
+				{'url':'stun:stunserver.org'},
+				{'url':'stun:stun.softjoys.com'},
+				{'url':'stun:stun.voiparound.com'},
+				{'url':'stun:stun.voipbuster.com'},
+				{'url':'stun:stun.voipstunt.com'},
+				{'url':'stun:stun.voxgratia.org'},
+				{'url':'stun:stun.xten.com'},
+				{
+					'url': 'turn:numb.viagenie.ca',
+					'credential': 'muazkh',
+					'username': 'webrtc@live.com'
+				},
+				{
+					'url': 'turn:192.158.29.39:3478?transport=udp',
+					'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+					'username': '28224511:1379330808'
+				},
+				{
+					'url': 'turn:192.158.29.39:3478?transport=tcp',
+					'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+					'username': '28224511:1379330808'
+				}
+			  ]
 			};
 			self.pc = new PeerConnection(configuration);
 			self.pc.onicecandidate = function(event) {
+				if(self.pc.remoteDescription == undefined || self.pc.remoteDescription == null) {
+					console.log("!!!REMOTE UNDEFINED!!!");
+				}
+				else {
+					console.log("!!!REMOTE IZ DEFINED!!!");
+				}
 				if(event.candidate) {
 					console.log("Sending new ICE Candidate");
+					console.log(event.candidate);
 					socket.emit("iceCandidate", JSON.stringify({
 						room: roomId,
 						candidate: event.candidate
 					}));
 				}
+			}
+			self.pc.onnegotiationneeded = function () {
+				console.log("ON NEGOTIATION NEEDED");
+				sendOfferToGroupmates(gpsIDs);
 			}
 			self.dataChannel = null;
 			
@@ -68,7 +113,9 @@ $(document).ready(function() {
 	//============
 
 	console.log("connecting...");
-	var socket = io.connect("127.0.0.1:8080");
+	
+	//var socket = io.connect("goDrawi.jit.su:80"); //use this if uploading to nodejitsu
+	var socket = io.connect("127.0.0.1:8080"); //use this if running locally
 	console.log("connected!!!");
 
 	//Sketchpad initialization
@@ -92,6 +139,7 @@ $(document).ready(function() {
 	//-----------------------
 
 	roomId = getRoomIdFromUrl();
+	//console.log("ROOM ID = " + roomId);
 	if(roomId) {
 		showLoading();
 		
@@ -107,15 +155,19 @@ $(document).ready(function() {
 	socket.on("iceCandidateUpdate", function(data) {
 		data = JSON.parse(data);
 		console.log("ICE Candidate update");
-		if(conObjs[data.clientID] != undefined) {
+		console.log("Got ICE Candidate from " + data.peerID);
+		if(conObjs[data.peerID] != undefined) {
 			console.log("client found");
-			conObjs[data.clientID].pc.addIceCandidate(new RTCIceCandidate(data.iceCandidate));
+			conObjs[data.peerID].pc.addIceCandidate(new RTCIceCandidate(data.iceCandidate));
 		}
 	});
 	
 	socket.on("createid", function(data) {
+		console.log("CREATEID HERE");
 		data = JSON.parse(data);
 		$("#input-room-id").val(data.id);
+		roomId = data.id;
+		console.log("Room ID = " + roomId);
 	});
 
 	socket.on("setname", function(data) {
@@ -128,9 +180,11 @@ $(document).ready(function() {
 		}
 	});
 
+	gpsIDs = [];
 	socket.on("roomExists", function(data) {
 		console.log("Room Exists, Sending Offer to groupmates");
 		data = JSON.parse(data);
+		gpsIDs = data.groupmatesIDs;
 		sendOfferToGroupmates(data.groupmatesIDs);
 	});
 	function createOfferSendingFunction(grpMtID) {
@@ -227,10 +281,23 @@ $(document).ready(function() {
 
 	});
 	
+	socket.on("deleteMember", function(data) {
+		data = JSON.parse(data);
+		console.log("DELETING MEMBER " + data.memberToDelete);
+		
+		delete conObjs[data.memberToDelete];
+		
+		console.log("group so far---");
+		for(var id in conObjs) {
+			console.log(conObjs[id].name);
+		}
+	});
+	
 	$("#create-button").click(function() {
 		var string = "?i=".concat($("#input-room-id").val());
 		history.replaceState(null, "", string);
 		showNameForm();
+		
 	});
 
 	$("#name-button").click(function() {
