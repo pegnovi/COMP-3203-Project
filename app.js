@@ -56,7 +56,7 @@ var server = http.createServer(function(request, response) {
     }
      
 }).listen(80);
- 
+//}).listen(8080); 
  
      
  
@@ -140,19 +140,9 @@ socket.on("connection", function(client) {
 			//group exists
 			//send number of ppl there and their clientIDs
 			var otherClientsIDs = [];
-			console.log("looping" + groups[data.room].length);
 			for(var i=0; i<groups[data.room].length; i++) {
 				otherClientsIDs.push(groups[data.room][i].id);
 			}
-			
-			/*
-			for(var otherC in groups[data.room]) {
-				console.log(otherC.id);
-				otherClientsIDs.push(otherC.id);
-			}
-			*/
-			
-			console.log(otherClientsIDs);
 			
 			client.emit("roomExists", JSON.stringify({
 				groupmatesIDs: otherClientsIDs
@@ -167,10 +157,16 @@ socket.on("connection", function(client) {
 					}
 				}
 				if(!found) {
-					console.log("added to group");
+					console.log("added " + client.id + " to group");
 					groups[data.room].push(client);
 					client.room = data.room;
 				}
+				
+				console.log("GROUP SO FAR:");
+				for(var i=0; i<groups[data.room].length; i++) {
+					console.log(groups[data.room][i].id);
+				}
+				console.log("+++++++++++++++++++++++++++");
 			}
 		
 		}
@@ -185,8 +181,8 @@ socket.on("connection", function(client) {
     });
 	client.on("signalOffer", function(data) {
 		data = JSON.parse(data);
-		console.log("!!!IN SIGNAL OFFER with target id = " + data.targetID);
-		console.log("the offer is = " + data.clientOffer);
+		//console.log("!!!IN SIGNAL OFFER with target id = " + data.targetID);
+		//console.log("the offer is = " + data.clientOffer);
 	
 		socket.to(data.targetID).emit("offerFromClient", JSON.stringify({
 			offer: data.clientOffer,
@@ -199,7 +195,7 @@ socket.on("connection", function(client) {
 	client.on("signalAnswer", function(data) {
 		data = JSON.parse(data);
 		
-		console.log("client room = " + client.room);
+		//console.log("client room = " + client.room);
 		socket.to(data.targetID).emit("answerToOffer", JSON.stringify({
 			roomID: client.room,
 			answer: data.clientAnswer,
@@ -212,15 +208,19 @@ socket.on("connection", function(client) {
 	client.on("iceCandidate", function(data) {
 		data = JSON.parse(data);
 		
+		console.log("ICE candidate from " + client.id);
+		console.log("For room " + data.room);
 		if(groups[data.room] != undefined) {
 			for(var i=0; i<groups[data.room].length; i++) {
 				if(groups[data.room][i].id != client.id) {
+					console.log("Sending ICE Candidate to " + groups[data.room][i].id);
 					socket.to(groups[data.room][i].id).emit("iceCandidateUpdate", JSON.stringify({
 						peerID: client.id,
 						iceCandidate: data.candidate
 					}));
 				}
 			}
+			console.log();
 		
 		}
 	});

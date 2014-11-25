@@ -25,13 +25,9 @@ $(document).ready(function() {
 		create: function() {
 			var self = Object.create(this);
 			self.name = "";
+			
 			var configuration = {
 			  'iceServers': [
-				{'url': 'stun:stun3.l.google.com:19302'},
-				{'url': 'stun:stun1.l.google.com:19302'}
-				{'url': 'stun:stun2.l.google.com:19302'}
-				{'url': 'stun:stun3.l.google.com:19302'}
-				{'url': 'stun:stun4.l.google.com:19302'}
 				{'url':'stun:stun01.sipphone.com'},
 				{'url':'stun:stun.ekiga.net'},
 				{'url':'stun:stun.fwdnet.net'},
@@ -52,24 +48,30 @@ $(document).ready(function() {
 				{'url':'stun:stun.voxgratia.org'},
 				{'url':'stun:stun.xten.com'},
 				{
-					url: 'turn:numb.viagenie.ca',
-					credential: 'muazkh',
-					username: 'webrtc@live.com'
+					'url': 'turn:numb.viagenie.ca',
+					'credential': 'muazkh',
+					'username': 'webrtc@live.com'
 				},
 				{
-					url: 'turn:192.158.29.39:3478?transport=udp',
-					credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-					username: '28224511:1379330808'
+					'url': 'turn:192.158.29.39:3478?transport=udp',
+					'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+					'username': '28224511:1379330808'
 				},
 				{
-					url: 'turn:192.158.29.39:3478?transport=tcp',
-					credential: 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
-					username: '28224511:1379330808'
+					'url': 'turn:192.158.29.39:3478?transport=tcp',
+					'credential': 'JZEOEt2V3Qb0y27GRntt2u2PAYA=',
+					'username': '28224511:1379330808'
 				}
 			  ]
 			};
 			self.pc = new PeerConnection(configuration);
 			self.pc.onicecandidate = function(event) {
+				if(self.pc.remoteDescription == undefined || self.pc.remoteDescription == null) {
+					console.log("!!!REMOTE UNDEFINED!!!");
+				}
+				else {
+					console.log("!!!REMOTE IZ DEFINED!!!");
+				}
 				if(event.candidate) {
 					console.log("Sending new ICE Candidate");
 					console.log(event.candidate);
@@ -112,6 +114,7 @@ $(document).ready(function() {
 
 	console.log("connecting...");
 	var socket = io.connect("goDrawi.jit.su:80");
+	//var socket = io.connect("127.0.0.1:8080");
 	console.log("connected!!!");
 
 	//Sketchpad initialization
@@ -135,6 +138,7 @@ $(document).ready(function() {
 	//-----------------------
 
 	roomId = getRoomIdFromUrl();
+	//console.log("ROOM ID = " + roomId);
 	if(roomId) {
 		showLoading();
 		
@@ -150,6 +154,7 @@ $(document).ready(function() {
 	socket.on("iceCandidateUpdate", function(data) {
 		data = JSON.parse(data);
 		console.log("ICE Candidate update");
+		console.log("Got ICE Candidate from " + data.peerID);
 		if(conObjs[data.peerID] != undefined) {
 			console.log("client found");
 			conObjs[data.peerID].pc.addIceCandidate(new RTCIceCandidate(data.iceCandidate));
@@ -157,8 +162,11 @@ $(document).ready(function() {
 	});
 	
 	socket.on("createid", function(data) {
+		console.log("CREATEID HERE");
 		data = JSON.parse(data);
 		$("#input-room-id").val(data.id);
+		roomId = data.id;
+		console.log("Room ID = " + roomId);
 	});
 
 	socket.on("setname", function(data) {
@@ -276,6 +284,7 @@ $(document).ready(function() {
 		var string = "?i=".concat($("#input-room-id").val());
 		history.replaceState(null, "", string);
 		showNameForm();
+		
 	});
 
 	$("#name-button").click(function() {
