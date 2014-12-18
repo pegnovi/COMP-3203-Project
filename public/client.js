@@ -138,7 +138,7 @@ $(document).ready(function() {
 
 	//-----------------------
 
-	roomId = getRoomIdFromUrl();
+	var roomId = getRoomIdFromUrl();
 	//console.log("ROOM ID = " + roomId);
 	if(roomId) {
 		showLoading();
@@ -165,7 +165,7 @@ $(document).ready(function() {
 	socket.on("createid", function(data) {
 		console.log("CREATEID HERE");
 		data = JSON.parse(data);
-		$("#input-room-id").val(data.id);
+		$("#input-room-id").val(document.URL + "?i=" + data.id);
 		roomId = data.id;
 		console.log("Room ID = " + roomId);
 	});
@@ -245,17 +245,16 @@ $(document).ready(function() {
 	
 	socket.on("roomDoesNotExist", function() {
 		alert("The room does not exist!");
-		showHome();
+		document.location.href = '../';
 	});
 	
 	socket.on("doesroomexist", function(data) {
 		data = JSON.parse(data);
 		if(data.result) {
 			showNameForm();
-		}
-		else {
+		} else {
 			alert("The room does not exist!");
-			showHome();
+			document.location.href = '../';
 		}
 	});
 	
@@ -312,7 +311,7 @@ $(document).ready(function() {
 	});
 	
 	$("#create-button").click(function() {
-		var string = "?i=".concat($("#input-room-id").val());
+		var string = "?i=".concat(roomId);
 		history.replaceState(null, "", string);
 		showNameForm();
 		
