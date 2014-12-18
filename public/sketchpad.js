@@ -32,6 +32,8 @@ function Sketchpad(ctx) {
 
 	ctx.canvas.addEventListener('mousemove', function(e){mouseMove(e)});
 
+	ctx.canvas.addEventListener('resize', function(e){console.log("Canvas Resized")});
+
 	function mouseMove(e, lineEnd) {
 		if(mouseDown) {
 			++counter;
@@ -104,6 +106,7 @@ function Sketchpad(ctx) {
 
 	function clear() {
 		ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+		console.log("Canvas Cleared");
 	}
 
 	function toArray() {
@@ -152,6 +155,20 @@ function Sketchpad(ctx) {
 		}
 	}
 
+	function getImageData() {
+		return ctx.canvas.toDataURL();
+	}
+
+	function setImageData(imgData) {
+		var img = new Image();
+		img.src = imgData;
+		console.log(imgData);
+		img.onload = function(){
+		  ctx.drawImage(img,0,0); // Or at whatever offset you like
+		};
+		console.log("Image Set");
+	}
+
 	function getMousePos(e) {
 		return {
 			x: e.pageX - ctx.canvas.offsetLeft,
@@ -172,5 +189,7 @@ function Sketchpad(ctx) {
 		setColor: setColor,
 		setWidth: setWidth,
 		drawFromArray: drawFromArray,
+		getImageData: getImageData,
+		setImageData: setImageData,
 	};
 }

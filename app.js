@@ -109,6 +109,8 @@ socket.on("connection", function(client) {
 
         if(data.name.length < 3) {
             message = "Name must be at least 3 characters long.";
+        } else if (data.name.length > 20) {
+        	message = "Name cannot be more than 20 characters long."
         } else {
             client.name = data.name;
             result = true;
@@ -132,13 +134,18 @@ socket.on("connection", function(client) {
         }
     });
 
+    client.on("requestCanvasData", function() {
+    	socket.to(groups[client.room][0].id).emit("getCanvasData", JSON.stringify({
+			requesterID: client.id
+		}));
+    });
+
 	//&&!!&&
 	client.on("giveCanvasData", function(data) {
 		console.log("giveCanvasData");
 		data = JSON.parse(data);
 		socket.to(data.peerID).emit("HereIsCanvasData", JSON.stringify({
-			message: "hello"
-			//<put data.canvasData here>
+			image: data.image,
 		}));
 	});
 	
@@ -153,11 +160,6 @@ socket.on("connection", function(client) {
 			for(var i=0; i<groups[data.room].length; i++) {
 				otherClientsIDs.push(groups[data.room][i].id);
 			}
-			
-			//get canvas data
-			socket.to(groups[data.room][0].id).emit("getCanvasData", JSON.stringify({
-				requesterID: client.id
-			}));
 			
 			client.emit("roomExists", JSON.stringify({
 				groupmatesIDs: otherClientsIDs

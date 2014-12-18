@@ -14,7 +14,7 @@ $(document).ready(function() {
 	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
 	
 	// The RTCIceCandidate object.
-	var RTCIceCandidate = mozRTCIceCandidate;
+	var RTCIceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate;
 	//console.log(PeerConnection);
 	//console.log(SessionDescription);
 	//console.log(RTCIceCandidate);
@@ -185,17 +185,17 @@ $(document).ready(function() {
 		console.log("getCanvasData");
 		data = JSON.parse(data);
 		
-		//<do canvas data getting here>
+		var imageData = sketchpad.getImageData();
 		socket.emit("giveCanvasData", JSON.stringify({
-			peerID: data.requesterID
-			//<put canvas data here>
+			peerID: data.requesterID,
+			image: imageData,
 		}));
 	});
 	//&&!!&&
 	socket.on("HereIsCanvasData", function(data) {
 		console.log("HereIsCanvasData");
 		data = JSON.parse(data);
-		//<set the canvas data here>
+		sketchpad.setImageData(data.image);
 	});
 	
 	gpsIDs = [];
@@ -376,7 +376,8 @@ $(document).ready(function() {
 		hide();
 		$("#chat-room").show();
 		$("#navbar").show();
-		resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
+		//resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
+		socket.emit("requestCanvasData", null);
 	}
 
 	function showHome() {
