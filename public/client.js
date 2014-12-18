@@ -185,17 +185,17 @@ $(document).ready(function() {
 		console.log("getCanvasData");
 		data = JSON.parse(data);
 		
-		//<do canvas data getting here>
+		var imageData = sketchpad.getImageData();
 		socket.emit("giveCanvasData", JSON.stringify({
-			peerID: data.requesterID
-			//<put canvas data here>
+			peerID: data.requesterID,
+			image: imageData,
 		}));
 	});
 	//&&!!&&
 	socket.on("HereIsCanvasData", function(data) {
 		console.log("HereIsCanvasData");
 		data = JSON.parse(data);
-		//<set the canvas data here>
+		sketchpad.setImageData(data.image);
 	});
 	
 	gpsIDs = [];
@@ -346,11 +346,6 @@ $(document).ready(function() {
 		}
 	});
 
-	var sendCanvasData = function() {
-		var imgData = sketchpad.getImageData();
-		sketchpad.setImageData(imgData);
-	}
-
 	drawingInterval = setInterval(function() {
 		var array = sketchpad.toArray();
 		if(array.length > 0)
@@ -381,7 +376,8 @@ $(document).ready(function() {
 		hide();
 		$("#chat-room").show();
 		$("#navbar").show();
-		resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
+		//resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
+		socket.emit("requestCanvasData", null);
 	}
 
 	function showHome() {
@@ -466,13 +462,6 @@ $(document).ready(function() {
 		var theConObj = findConObj(dataChannel);
 		if(theConObj != null) {
 			sketchpad.drawFromArray(data.dataObj);
-		}
-	}
-
-	commandFunctions["canvasData"] = function(dataChannel, data) {
-		var theConObj = findConObj(dataChannel);
-		if(theConObj != null) {
-			sketchpad.setImageData(data.dataObj);
 		}
 	}
 
