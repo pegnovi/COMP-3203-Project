@@ -138,7 +138,7 @@ $(document).ready(function() {
 
 	//-----------------------
 
-	roomId = getRoomIdFromUrl();
+	var roomId = getRoomIdFromUrl();
 	//console.log("ROOM ID = " + roomId);
 	if(roomId) {
 		showLoading();
@@ -311,7 +311,7 @@ $(document).ready(function() {
 	});
 	
 	$("#create-button").click(function() {
-		var string = "?i=".concat($("#input-room-id").val());
+		var string = "?i=".concat(roomId);
 		history.replaceState(null, "", string);
 		showNameForm();
 		
