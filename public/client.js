@@ -331,7 +331,9 @@ $(document).ready(function() {
 	
 	var sendChatMessage = function() {
 		var msg = $("#msg").val();
-		$("#convo").append(ownName + ": " + msg + "\n");
+		var convo = $("#convo");
+		convo.append(ownName + ": " + msg + "\n");
+		convo.scrollTop(convo[0].scrollHeight);
 		sendToGroup("chatMessage", msg);
 		$("#msg").val("");
 	};
@@ -453,7 +455,9 @@ $(document).ready(function() {
 	commandFunctions["chatMessage"] = function(dataChannel, data) {
 		var theConObj = findConObj(dataChannel);
 		if(theConObj != null) {
-			$("#convo").append(theConObj.name + ": " + data.dataObj + "\n");
+			var convo = $("#convo");
+			convo.append(theConObj.name + ": " + data.dataObj + "\n");
+			convo.scrollTop(convo[0].scrollHeight);
 		}
 	};
 
