@@ -180,6 +180,24 @@ $(document).ready(function() {
 		}
 	});
 
+	//&&!!&&
+	socket.on("getCanvasData", function(data) {
+		console.log("getCanvasData");
+		data = JSON.parse(data);
+		
+		//<do canvas data getting here>
+		socket.emit("giveCanvasData", JSON.stringify({
+			peerID: data.requesterID
+			//<put canvas data here>
+		}));
+	});
+	//&&!!&&
+	socket.on("HereIsCanvasData", function(data) {
+		console.log("HereIsCanvasData");
+		data = JSON.parse(data);
+		//<set the canvas data here>
+	});
+	
 	gpsIDs = [];
 	socket.on("roomExists", function(data) {
 		console.log("Room Exists, Sending Offer to groupmates");

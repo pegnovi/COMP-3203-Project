@@ -132,6 +132,16 @@ socket.on("connection", function(client) {
         }
     });
 
+	//&&!!&&
+	client.on("giveCanvasData", function(data) {
+		console.log("giveCanvasData");
+		data = JSON.parse(data);
+		socket.to(data.peerID).emit("HereIsCanvasData", JSON.stringify({
+			message: "hello"
+			//<put data.canvasData here>
+		}));
+	});
+	
     client.on("doesroomexist", function(data) {
         data = JSON.parse(data);
         var result = groups[data.room] ? true: false;
@@ -143,6 +153,11 @@ socket.on("connection", function(client) {
 			for(var i=0; i<groups[data.room].length; i++) {
 				otherClientsIDs.push(groups[data.room][i].id);
 			}
+			
+			//get canvas data
+			socket.to(groups[data.room][0].id).emit("getCanvasData", JSON.stringify({
+				requesterID: client.id
+			}));
 			
 			client.emit("roomExists", JSON.stringify({
 				groupmatesIDs: otherClientsIDs
