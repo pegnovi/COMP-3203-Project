@@ -152,6 +152,15 @@ function Sketchpad(ctx) {
 		}
 	}
 
+	function getImageData() {
+		return ctx.getImageData(0, 0, ctx.canvas.width, ctx.canvas.height);
+	}
+
+	function setImageData(imgData) {
+		clear();
+		ctx.drawImage(imgData, 0, 0);
+	}
+
 	function getMousePos(e) {
 		return {
 			x: e.pageX - ctx.canvas.offsetLeft,
@@ -172,5 +181,7 @@ function Sketchpad(ctx) {
 		setColor: setColor,
 		setWidth: setWidth,
 		drawFromArray: drawFromArray,
+		getImageData: getImageData,
+		setImageData: setImageData,
 	};
 }

@@ -14,7 +14,7 @@ $(document).ready(function() {
 	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
 	
 	// The RTCIceCandidate object.
-	var RTCIceCandidate = mozRTCIceCandidate;
+	var RTCIceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate;
 	//console.log(PeerConnection);
 	//console.log(SessionDescription);
 	//console.log(RTCIceCandidate);
@@ -328,6 +328,11 @@ $(document).ready(function() {
 		}
 	});
 
+	var sendCanvasData = function() {
+		var imgData = sketchpad.getImageData();
+		sketchpad.setImageData(imgData);
+	}
+
 	drawingInterval = setInterval(function() {
 		var array = sketchpad.toArray();
 		if(array.length > 0)
@@ -443,6 +448,13 @@ $(document).ready(function() {
 		var theConObj = findConObj(dataChannel);
 		if(theConObj != null) {
 			sketchpad.drawFromArray(data.dataObj);
+		}
+	}
+
+	commandFunctions["canvasData"] = function(dataChannel, data) {
+		var theConObj = findConObj(dataChannel);
+		if(theConObj != null) {
+			sketchpad.setImageData(data.dataObj);
 		}
 	}
 
