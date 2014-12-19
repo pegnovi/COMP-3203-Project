@@ -361,6 +361,18 @@ $(document).ready(function() {
 		$("#convo").scrollTop($("#convo")[0].scrollHeight);
 		$(".exclamation").remove();
 	});
+
+	$("#user-list-button").click(function() {
+		var list = $("#user-list");
+		list.empty();
+		list.append('<li><a href="#"><i class="fa fa-user" style="margin-right: 5px"></i>You</a></li>');
+		console.log("CONOBJS " + conObjs);
+		for (var id in conObjs) {
+			var obj = conObjs[id];
+			if(obj.name)
+				list.append('<li class="' + obj.name + '"><a href="#"><i class="fa fa-user" style="margin-right: 5px"></i>' + obj.name + '</a></li>');
+		}
+	});
 	
 	var sendChatMessage = function() {
 		var msg = $("#msg").val();
@@ -379,14 +391,6 @@ $(document).ready(function() {
 			sendChatMessage();
 		}
 	});
-
-	$('#textareaID').bind('input propertychange', function() {
-		alert("change");
-		var header = $("#convo-header");
-		if(header.hasClass("collapsed")) {
-			alert("change collapsed")
-		}
-	})
 
 	drawingInterval = setInterval(function() {
 		var array = sketchpad.toArray();
