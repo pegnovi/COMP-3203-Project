@@ -304,6 +304,9 @@ $(document).ready(function() {
 	socket.on("deleteMember", function(data) {
 		data = JSON.parse(data);
 		console.log("DELETING MEMBER " + data.memberToDelete);
+
+		$("#convo").append(">" + conObjs[data.memberToDelete].name + " has left!\n");
+		convoHasChanged();
 		
 		delete conObjs[data.memberToDelete];
 		
@@ -355,6 +358,8 @@ $(document).ready(function() {
 			chevron.removeClass("fa-chevron-down");
 			chevron.addClass("fa-chevron-up");
 		}
+		$("#convo").scrollTop($("#convo")[0].scrollHeight);
+		$(".exclamation").remove();
 	});
 	
 	var sendChatMessage = function() {
@@ -375,11 +380,26 @@ $(document).ready(function() {
 		}
 	});
 
+	$('#textareaID').bind('input propertychange', function() {
+		alert("change");
+		var header = $("#convo-header");
+		if(header.hasClass("collapsed")) {
+			alert("change collapsed")
+		}
+	})
+
 	drawingInterval = setInterval(function() {
 		var array = sketchpad.toArray();
 		if(array.length > 0)
 			sendToGroup("draw", array);
 	},30);
+
+	function convoHasChanged() {
+		var header = $("#convo-header");
+		if(header.hasClass("collapsed") && $(".exclamation").length == 0) {
+			header.prepend("<div class='exclamation dark-green'><i class='fa fa-exclamation fa-1x'></i></div>");
+		}
+	}
 
 	function getRoomIdFromUrl() {
 		var url = document.URL,
@@ -479,6 +499,7 @@ $(document).ready(function() {
 			theConObj.name = data.dataObj;
 			console.log("received name = " + theConObj.name);
 			$("#convo").append(">" + theConObj.name + " has joined!\n")
+			convoHasChanged();
 		}
 	};
 
@@ -488,6 +509,7 @@ $(document).ready(function() {
 			var convo = $("#convo");
 			convo.append(theConObj.name + ": " + data.dataObj + "\n");
 			convo.scrollTop(convo[0].scrollHeight);
+			convoHasChanged();
 		}
 	};
 

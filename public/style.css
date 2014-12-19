@@ -145,6 +145,31 @@ html, body {
 	min-height: 30px;
 }
 
+.circle {
+	border-radius: 50%;
+	width: 100px;
+	height: 100px;
+}
+
+.home-circle {
+	border-radius: 50%;
+	font-size: 120px;
+	width: 200px;
+	height: 200px;
+	padding-top: 20px;
+	padding-left: 35px;
+	float: left;
+}
+
+.exclamation {
+	border-radius: 2px 2px;
+	width: 20px;
+	height: 20px;
+	padding-left: 8px;
+	float: left;
+	margin-right: 5px;
+}
+
 /* Colors*/
 .white {
 	background-color: #FFF;
