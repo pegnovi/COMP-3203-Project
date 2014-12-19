@@ -10,14 +10,17 @@ $(document).ready(function() {
 	//https://bitbucket.org/webrtc/codelab
 	//https://www.webrtc-experiment.com/docs/how-to-use-rtcdatachannel.html
 	
-	var PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection;
-	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription;
+	var PeerConnection = window.RTCPeerConnection || window.mozRTCPeerConnection || window.webkitRTCPeerConnection || null;
+	var SessionDescription = window.RTCSessionDescription || window.mozRTCSessionDescription || window.webkitRTCSessionDescription || null;
 	
 	// The RTCIceCandidate object.
-	var RTCIceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate;
+	var RTCIceCandidate = window.mozRTCIceCandidate || window.webkitRTCIceCandidate || null;
 	//console.log(PeerConnection);
 	//console.log(SessionDescription);
 	//console.log(RTCIceCandidate);
+
+	if(!PeerConnection)
+		alert("Your browser does not support WebRTC. Get Firefox to use Drawi!");
 	
 	
 	//stores peerConnection and dataChannel
@@ -317,7 +320,7 @@ $(document).ready(function() {
 		
 	});
 
-	$("#name-button").click(function() {
+	function setName() {
 		socket.emit("setname", JSON.stringify({
 			name: $("#name-input").val(),
 		}));
@@ -326,6 +329,31 @@ $(document).ready(function() {
 		if(channelOpen == true) {
 			console.log("SENDING A NAME");
 			sendToGroup("name", $("#name-input").val());
+		}
+	}
+
+	$("#name-button").click(function() {
+		setName();
+	});
+	$("#name-input").keypress(function(e) {
+		if(e.which == 13) {
+			setName();
+		}
+	});
+
+	$("#url-button").click(function() {
+		window.prompt("Copy URL to clipboard: Ctrl+C", document.URL);
+	});
+
+	$("#convo-header").click(function() {
+		if($(this).hasClass("collapsed")){
+			var chevron = $("#convo-header").find("i");
+			chevron.removeClass("fa-chevron-up");
+			chevron.addClass("fa-chevron-down");
+		} else {
+			var chevron = $(this).find("i");
+			chevron.removeClass("fa-chevron-down");
+			chevron.addClass("fa-chevron-up");
 		}
 	});
 	
@@ -365,20 +393,20 @@ $(document).ready(function() {
 			return null;
 	}
 
-	function resizeCanvas(canvas, container) {
-		//canvas.style.width = "100%";
-		//canvas.style.height = "100%";
-
-		//canvas.width  = canvas.offsetWidth;
-		//canvas.height = canvas.offsetHeight;
-	}
-
 	function showChatRoom() {
 		hide();
 		$("#chat-room").show();
 		$("#navbar").show();
-		//resizeCanvas($("#canvas")[0], $("#canvas-div")[0]);
+		var navigation = $("#navigation");
+		navigation.animate({
+			height: 50,
+		}, 1000);
+		navigation.addClass("navbar-fixed-top");
+		navigation.removeClass("navbar-static-top");
+		$(".navbar-brand").css("padding", "5px");
+		sketchpad.resize();
 		socket.emit("requestCanvasData", null);
+
 	}
 
 	function showHome() {
@@ -389,6 +417,7 @@ $(document).ready(function() {
 	function showNameForm() {
 		hide();
 		$("#name-form").show();
+		$("#name-input").focus();
 	}
 
 	function showLoading() {
@@ -449,6 +478,7 @@ $(document).ready(function() {
 		if(theConObj != null) {
 			theConObj.name = data.dataObj;
 			console.log("received name = " + theConObj.name);
+			$("#convo").append(">" + theConObj.name + " has joined!\n")
 		}
 	};
 
