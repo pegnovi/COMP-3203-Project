@@ -13,18 +13,23 @@
 					<h4><i class="fa fa-pencil fa-1x"></i><strong>Drawi</strong></h4>
 				</a>
 				<div id="navbar">
-					<button id="url-button" class="btn btn-default btn-lg navbar-btn btn-custom dark-green">
+					<button id="url-button" class="btn btn-default btn-lg navbar-btn btn-custom dark-green float-right">
 						<i class="fa fa-link"></i>
 					</button>
-					<div id="color-selector-div">
+					<ul class="float-right" style="list-style-type: none; padding: 0px;">
+						<li class="dropdown">
+							<button id="user-list-button" class="dropdown-toggle btn btn-default btn-lg navbar-btn btn-custom dark-green" data-toggle="dropdown" role="button" aria-expanded="false">
+								<i class="fa fa-users"></i>
+							</button>
+							<ul id="user-list" class="dropdown-menu" role="menu"></ul>
+						</li>
+			        </ul>
+					<div id="color-selector-div" class="float-right">
 						<input id="color-selector" class="btn btn-default btn-lg navbar-btn btn-custom dark-green" type="color" pattern="#[a-f0-9]{6}" title="hexadecimal color" placeholder="#000000">
 					</div>
-					<div id="size-selector-div">
+					<div id="size-selector-div" class="float-right">
 						<input id="size-selector" type="range" id="myRange" value="5">
 					</div>
-					<!--button type="button" class="btn btn-default btn-lg navbar-btn btn-custom dark-green">
-						<i class="fa fa-lock fa-1x"> </i>Lock Room
-					</button-->
 				</div>
 			</div>
 		</nav>
@@ -73,25 +78,22 @@
 					</div>
 				</div>
 			</div>
-			<div>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-				<br/>
-			</div>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
+			<br/>
 		</div>
 		<!-- Enter Name Page -->
 		<div id="name-form">

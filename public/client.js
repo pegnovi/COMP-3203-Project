@@ -304,6 +304,9 @@ $(document).ready(function() {
 	socket.on("deleteMember", function(data) {
 		data = JSON.parse(data);
 		console.log("DELETING MEMBER " + data.memberToDelete);
+
+		$("#convo").append(">" + conObjs[data.memberToDelete].name + " has left!\n");
+		convoHasChanged();
 		
 		delete conObjs[data.memberToDelete];
 		
@@ -355,6 +358,20 @@ $(document).ready(function() {
 			chevron.removeClass("fa-chevron-down");
 			chevron.addClass("fa-chevron-up");
 		}
+		$("#convo").scrollTop($("#convo")[0].scrollHeight);
+		$(".exclamation").remove();
+	});
+
+	$("#user-list-button").click(function() {
+		var list = $("#user-list");
+		list.empty();
+		list.append('<li><a href="#"><i class="fa fa-user" style="margin-right: 5px"></i>You</a></li>');
+		console.log("CONOBJS " + conObjs);
+		for (var id in conObjs) {
+			var obj = conObjs[id];
+			if(obj.name)
+				list.append('<li class="' + obj.name + '"><a href="#"><i class="fa fa-user" style="margin-right: 5px"></i>' + obj.name + '</a></li>');
+		}
 	});
 	
 	var sendChatMessage = function() {
@@ -380,6 +397,13 @@ $(document).ready(function() {
 		if(array.length > 0)
 			sendToGroup("draw", array);
 	},30);
+
+	function convoHasChanged() {
+		var header = $("#convo-header");
+		if(header.hasClass("collapsed") && $(".exclamation").length == 0) {
+			header.prepend("<div class='exclamation dark-green'><i class='fa fa-exclamation fa-1x'></i></div>");
+		}
+	}
 
 	function getRoomIdFromUrl() {
 		var url = document.URL,
@@ -479,6 +503,7 @@ $(document).ready(function() {
 			theConObj.name = data.dataObj;
 			console.log("received name = " + theConObj.name);
 			$("#convo").append(">" + theConObj.name + " has joined!\n")
+			convoHasChanged();
 		}
 	};
 
@@ -488,6 +513,7 @@ $(document).ready(function() {
 			var convo = $("#convo");
 			convo.append(theConObj.name + ": " + data.dataObj + "\n");
 			convo.scrollTop(convo[0].scrollHeight);
+			convoHasChanged();
 		}
 	};
 

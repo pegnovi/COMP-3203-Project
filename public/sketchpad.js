@@ -204,18 +204,14 @@ function Sketchpad(ctx) {
 	}
 
 	function resize() {
-		var data = ctx.canvas.toDataURL();
-		var img = new Image();
-		img.src = data;
+		if(!$(ctx.canvas).is(":visible")) {
+			return;
+		} 
+
 		ctx.canvas.style.width = "100%";
 		ctx.canvas.style.height = "100%";
 		xRatio = ctx.canvas.width/ctx.canvas.scrollWidth;
 		yRatio = ctx.canvas.height/ctx.canvas.scrollHeight;
-		//ctx.canvas.width = ctx.canvas.scrollWidth;
-		//ctx.canvas.height = ctx.canvas.scrollHeight;
-		img.onload = function() {
-			//ctx.drawImage(img, 0, 0);
-		}
 	}
 
 	return {
