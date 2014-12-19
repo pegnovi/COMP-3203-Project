@@ -186,7 +186,6 @@ function Sketchpad(ctx) {
 	}
 
 	function getMousePos(e) {
-		console.log(1920/ctx.canvas.scrollWidth);
 		return {
 			x: (e.pageX * xRatio - ctx.canvas.offsetLeft),
 			y: (e.pageY * yRatio - ctx.canvas.offsetTop)
