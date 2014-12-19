@@ -12,9 +12,16 @@
 				<a class="navbar-brand" href="./">
 					<h4><i class="fa fa-pencil fa-1x"></i><strong>Drawi</strong></h4>
 				</a>
-				<div id="navbar" class="pull-right">
-					<input id="size-selector" type="range" id="myRange" value="5">
-					<input id="color-selector" class="btn btn-default btn-lg navbar-btn btn-custom dark-green" type="color" pattern="#[a-f0-9]{6}" title="hexadecimal color" placeholder="#000000">
+				<div id="navbar">
+					<button id="url-button" class="btn btn-default btn-lg navbar-btn btn-custom dark-green">
+						<i class="fa fa-link"></i>
+					</button>
+					<div id="color-selector-div">
+						<input id="color-selector" class="btn btn-default btn-lg navbar-btn btn-custom dark-green" type="color" pattern="#[a-f0-9]{6}" title="hexadecimal color" placeholder="#000000">
+					</div>
+					<div id="size-selector-div">
+						<input id="size-selector" type="range" id="myRange" value="5">
+					</div>
 					<!--button type="button" class="btn btn-default btn-lg navbar-btn btn-custom dark-green">
 						<i class="fa fa-lock fa-1x"> </i>Lock Room
 					</button-->
@@ -110,25 +117,26 @@
 		<!-- Chat Room Page -->
 		<div id="chat-room">
 			<div id="canvas-div" class="container-fluid no-padding gray">
-				<canvas id="canvas" class="white" width="800" height="500">
+				<canvas id="canvas" class="white" width="1920" height="1080">
 					Your browser does not seem to support the canvas element.
 				</canvas>
 			</div>
-			<div class="col-xs-7 col-xs-offset-4 col-md-5 col-md-offset-6 col-lg-3 col-lg-offset-8 convo-div navbar navbar-fixed-bottom">
-				<div class="convo-header green" aria-expanded="false" data-target="#chat" data-toggle="collapse">
-					Chat 
-					<i class="fa fa-chevron-up fa-1x"></i>
+			<div id="footer" class="col-xs-7 col-xs-offset-4 col-md-5 col-md-offset-6 col-lg-3 col-lg-offset-8 convo-div navbar navbar-fixed-bottom">
+				<div id="convo-header" class="green collapsed" aria-expanded="false" data-target="#chat" data-toggle="collapse">
+					<b>
+						Chat <i class="fa fa-chevron-up fa-1x"></i>
+					</b>
 				</div>
-				<div id="chat" class="convo-container white collapse">
+				<div id="chat" class="convo-container gray collapse">
 					<textarea id="convo" readonly></textarea>
-					<div class="convo-footer gray">
+					<div class="convo-footer">
 						<input type="text" class="input" placeholder="Your message" id="msg">
-						<input type="button" name="send" id="send" value="Send" class="btn btn-success">
+						<input type="button" name="send" id="send" value="Send" class="btn btn-custom dark-green">
 					</div>
 				</div>
 			</div>
 		</div>
-		<!-- Enter Name Page -->
+		<!-- Loading Page -->
 		<div id="loading">
 			<div class="container">
 				<div class="jumbotron col-xs-10 col-xs-offset-1 col-md-8 col-md-offset-2">

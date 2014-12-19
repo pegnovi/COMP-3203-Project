@@ -8,6 +8,10 @@ function Sketchpad(ctx) {
 		mouseDown		= false,
 		counter			= 0;
 
+	//Variables used to offset mouse
+	var xRatio = 1,
+		yRatio = 1;
+
 	ctx.lineCap     = 'round';
 
 	ctx.canvas.addEventListener('mousedown', function(e) {
@@ -23,16 +27,28 @@ function Sketchpad(ctx) {
 	});
 
 	ctx.canvas.addEventListener('mouseup', function(e) {
-		mouseMove(e, true);
-		addCurrLine();
-		currLine  = new LinkedList();
-		mouseDown = false;
-		counter   = 0;
+		mouseUp(e);
+	});
+
+	ctx.canvas.addEventListener('mouseout', function(e) {
+		mouseUp(e);
 	});
 
 	ctx.canvas.addEventListener('mousemove', function(e){mouseMove(e)});
 
 	ctx.canvas.addEventListener('resize', function(e){console.log("Canvas Resized")});
+
+	window.addEventListener('resize', resize, false);
+
+	function mouseUp(e) {
+		if(mouseDown) {
+			mouseMove(e, true);
+			addCurrLine();
+			currLine  = new LinkedList();
+			mouseDown = false;
+			counter   = 0;
+		}
+	}
 
 	function mouseMove(e, lineEnd) {
 		if(mouseDown) {
@@ -170,9 +186,10 @@ function Sketchpad(ctx) {
 	}
 
 	function getMousePos(e) {
+		console.log(1920/ctx.canvas.scrollWidth);
 		return {
-			x: e.pageX - ctx.canvas.offsetLeft,
-			y: e.pageY - ctx.canvas.offsetTop
+			x: (e.pageX * xRatio - ctx.canvas.offsetLeft),
+			y: (e.pageY * yRatio - ctx.canvas.offsetTop)
 		}
 	}
 
@@ -181,7 +198,24 @@ function Sketchpad(ctx) {
 	}
 
 	function setWidth(width) {
+		if(width < 1)
+			width = 1;
 		currWidth = width;
+	}
+
+	function resize() {
+		var data = ctx.canvas.toDataURL();
+		var img = new Image();
+		img.src = data;
+		ctx.canvas.style.width = "100%";
+		ctx.canvas.style.height = "100%";
+		xRatio = ctx.canvas.width/ctx.canvas.scrollWidth;
+		yRatio = ctx.canvas.height/ctx.canvas.scrollHeight;
+		//ctx.canvas.width = ctx.canvas.scrollWidth;
+		//ctx.canvas.height = ctx.canvas.scrollHeight;
+		img.onload = function() {
+			//ctx.drawImage(img, 0, 0);
+		}
 	}
 
 	return {
@@ -191,5 +225,6 @@ function Sketchpad(ctx) {
 		drawFromArray: drawFromArray,
 		getImageData: getImageData,
 		setImageData: setImageData,
+		resize: resize,
 	};
 }
